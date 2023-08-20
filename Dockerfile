@@ -1,5 +1,5 @@
 # Use a specific LTS version of Node.js as the base image
-FROM node:18.17-bullseye
+FROM node:18.17-bullseye AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,8 +13,20 @@ RUN npm install
 # Copy the entire project directory to the container
 COPY . .
 
-# Expose the port your React app will run on
-EXPOSE 3000
+# Build the React app
+RUN npm run build
 
-# Define the default command to start your React app
-CMD ["npm", "start"]
+# Stage 2: Use NGINX to serve the built React app
+FROM nginx:latest
+
+# Copy the built React app files from the build stage to the NGINX web root directory
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Copy a custom NGINX configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]
