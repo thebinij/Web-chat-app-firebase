@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-chat-deployment
+  labels:
+    app: web-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-chat
+  template:
+    metadata:
+      labels:
+        app: web-chat
+    spec:
+      containers:
+      - name: web-chat
+        image: thebinij/web-chat-firebase:latest
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
